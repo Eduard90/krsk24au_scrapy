@@ -11,5 +11,16 @@ BOT_NAME = 'krsk24au_scrapy'
 SPIDER_MODULES = ['krsk24au_scrapy.spiders']
 NEWSPIDER_MODULE = 'krsk24au_scrapy.spiders'
 
+ITEM_PIPELINES = {
+    'krsk24au_scrapy.pipelines.MySQLPipeline': 800,
+}
+
+MYSQL_HOST = 'localhost'
+MYSQL_DBNAME = '24au_test'
+MYSQL_USER = 'root'
+MYSQL_PASSWD = 'qwqw4'
+
+USERS = ["lapy", "viewsonic", "Artyx", "Art79", "Vikusya888", "Batia", "len1501", "Stella1", "huckster", "24kupit", "olesia7", "Taka", "serg_em", "ka4eli", "Photoline", "Katerinaa0790", "remaleks", "ivashka", "vovik_125345", "usa-jeans24"]
+PAGES = 1
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'krsk24au_scrapy (+http://www.yourdomain.com)'

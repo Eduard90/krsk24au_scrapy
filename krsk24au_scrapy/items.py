@@ -14,4 +14,5 @@ class Krsk24AuScrapyItem(Item):
     link = Field()
     date_time = Field()
     user_url = Field()
+    uniq = Field()
     pass
