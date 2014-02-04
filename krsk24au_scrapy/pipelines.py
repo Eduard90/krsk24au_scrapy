@@ -31,7 +31,7 @@ class MySQLPipeline(object):
         work_time = datetime.now() - spider.started_on
         spider.log("~~~~~ WORK TIME: %s" % work_time)
 
-        d = self.dbpool.runQuery("""UPDATE `krsk24au_info_review` SET user_id = (SELECT id FROM krsk24au_info_user WHERE name=user LIMIT 1)""")
+        d = self.dbpool.runQuery("""UPDATE `krsk24au_info_review` SET user_id = (SELECT id FROM krsk24au_info_user WHERE name=user_name LIMIT 1)""")
         d.addCallback(self.update_users)
         reactor.run()
 
@@ -83,7 +83,7 @@ class MySQLPipeline(object):
 
         if not ret:
             conn.execute("""
-                INSERT INTO krsk24au_info_review (uniq, good_id, title, link, date_time, user)
+                INSERT INTO krsk24au_info_review (uniq, good_id, title, link, date_time, user_name)
                 VALUES (%s, %s, %s, %s, %s, %s)
             """, (item['uniq'], item['good_id'], item['title'], item['link'], item['date_time'], item['user']))
 
