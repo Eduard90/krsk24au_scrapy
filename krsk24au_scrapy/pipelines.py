@@ -9,6 +9,7 @@ from scrapy import log
 from scrapy import signals
 from scrapy.xlib.pydispatch import dispatcher
 from twisted.enterprise import adbapi
+from twisted.internet import reactor
 
 class Krsk24AuScrapyPipeline(object):
     def process_item(self, item, spider):
@@ -20,12 +21,19 @@ class MySQLPipeline(object):
         dispatcher.connect(self.spider_opened, signal=signals.spider_opened)
         dispatcher.connect(self.spider_closed, signal=signals.spider_closed)
 
+    def update_users(self, value):
+        reactor.stop()
+
     def spider_opened(self, spider):
         spider.started_on = datetime.now()
 
     def spider_closed(self, spider):
         work_time = datetime.now() - spider.started_on
         spider.log("~~~~~ WORK TIME: %s" % work_time)
+
+        d = self.dbpool.runQuery("""UPDATE `krsk24au_info_review` SET user_id = (SELECT id FROM krsk24au_info_user WHERE name=user LIMIT 1)""")
+        d.addCallback(self.update_users)
+        reactor.run()
 
     @classmethod
     def from_settings(cls, settings):
@@ -57,17 +65,27 @@ class MySQLPipeline(object):
         # now = datetime.utcnow().replace(microsecond=0).isoformat(' ')
 
         item['uniq'] = uniq
+        item['date_time'] = datetime.strptime(item['date_time'][0], "%d.%m.%Y %H:%M:%S")
 
         conn.execute("""SELECT EXISTS(
             SELECT 1 FROM krsk24au_info_review WHERE uniq = %s
         )""", (uniq, ))
         ret = conn.fetchone()[0]
 
+        # conn.execute("""SELECT id FROM krsk24au_info_user WHERE name = %s""", (item['user'], ))
+        # user_id = conn.fetchone()
+        # spider.log("~~~~~~~ USER_ID: %s" % user_id)
+        # user_id = 1
+
+        # if not user_id:
+        #     conn.execute("""INSERT INTO krsk24au_info_user (name) VALUES (%s)""", (item['user'], ))
+        #     user_id = conn.lastrowid
+
         if not ret:
             conn.execute("""
-                INSERT INTO krsk24au_info_review (uniq, good_id, title, link, date_time)
-                VALUES (%s, %s, %s, %s, %s)
-            """, (item['uniq'], item['good_id'], item['title'], item['link'], item['date_time']))
+                INSERT INTO krsk24au_info_review (uniq, good_id, title, link, date_time, user)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (item['uniq'], item['good_id'], item['title'], item['link'], item['date_time'], item['user']))
 
         # spider.log("~~~~~~~ STORED IN DB: %s" % (uniq))
 
