@@ -61,11 +61,11 @@ class MySQLPipeline(object):
 
     def _do_upsert(self, conn, item, spider):
         """Perform an insert or update."""
-        uniq = self._generate_uniqid(item)
         # now = datetime.utcnow().replace(microsecond=0).isoformat(' ')
 
-        item['uniq'] = uniq
         item['date_time'] = datetime.strptime(item['date_time'][0], "%d.%m.%Y %H:%M:%S")
+        uniq = self._generate_uniqid(item)
+        item['uniq'] = uniq
 
         conn.execute("""SELECT EXISTS(
             SELECT 1 FROM krsk24au_info_review WHERE uniq = %s
@@ -96,4 +96,9 @@ class MySQLPipeline(object):
 
     def _generate_uniqid(self, item):
         """Generates an unique identifier for a given item."""
-        return md5(item['good_id'][0] + item['date_time'][0]).hexdigest()
+        date_time = item['date_time'].strftime("%Y-%m-%d %H:%M:%S")
+        id = item['good_id'][0] + date_time
+        # if item['good_id'][0] == '3636246':
+        #     print md5("%s" % id).hexdigest()
+        #     print ("%s - %s", (item['good_id'][0], item['date_time']))
+        return md5("%s" % id).hexdigest()
